@@ -11,12 +11,24 @@ class QueryAgent:
         self.pageindex = pageindex
 
     def answer(self, question: str) -> Tuple[str, List[ProvenanceEntry]]:
-        # TODO: plug in proper vector search + PageIndex navigation + SQL fact tables
         if not self.ldus:
             return "No data.", []
 
-        best = self.ldus[0]
-        answer = best.content[:300]
+        # naive keyword score
+        q_words = set(question.lower().split())
+        best = None
+        best_score = -1
+        for l in self.ldus:
+            text = l.content.lower()
+            score = sum(1 for w in q_words if w in text)
+            if score > best_score:
+                best_score = score
+                best = l
+
+        if best is None or best_score == 0:
+            return "No relevant information found.", []
+
+        answer = best.content[:500]
         prov = [
             ProvenanceEntry(
                 document_name=best.doc_id,

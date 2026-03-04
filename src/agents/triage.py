@@ -45,24 +45,20 @@ class TriageAgent:
         avg_density = sum(s.char_density for s in stats) / max(len(stats), 1)
         avg_img_ratio = sum(s.image_area_ratio for s in stats) / max(len(stats), 1)
 
-        if avg_density < 0.0005 and avg_img_ratio > 0.5:
+        # Heuristic tuned for real docs:
+        # very low density + high image ratio -> scanned
+        if avg_density < 1e-5 and avg_img_ratio > 0.6:
             origin_type = "scanned_image"
             estimated_cost = "needs_vision_model"
         else:
             origin_type = "native_digital"
             estimated_cost = "fast_text_sufficient"
 
-        # Simple heuristic for layout complexity (can be refined)
-        if any(s.char_count > 2000 for s in stats):
-            layout_complexity = "multi_column"
-        else:
-            layout_complexity = "single_column"
+        # TODO: refine with table/column detection
+        layout_complexity = "single_column"
 
-        # TODO: plug in language detection (e.g., fastText, langdetect)
         language = "en"
         language_confidence = 0.9
-
-        # TODO: keyword-based domain detection
         domain_hint = "general"
 
         return DocumentProfile(

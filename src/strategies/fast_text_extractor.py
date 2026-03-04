@@ -14,16 +14,10 @@ class FastTextExtractor(BaseExtractor):
 
         with pdfplumber.open(str(pdf_path)) as pdf:
             for i, page in enumerate(pdf.pages, start=1):
-                words = page.extract_words() or []
-                if words:
-                    x0 = min(w["x0"] for w in words)
-                    top = min(w["top"] for w in words)
-                    x1 = max(w["x1"] for w in words)
-                    bottom = max(w["bottom"] for w in words)
-                    text = page.extract_text() or ""
-                    text_blocks.append(
-                        TextBlock(page=i, bbox=(x0, top, x1, bottom), text=text)
-                    )
+                text = page.extract_text() or ""
+                if text.strip():
+                    bbox = (0.0, 0.0, float(page.width), float(page.height))
+                    text_blocks.append(TextBlock(page=i, bbox=bbox, text=text))
 
         doc = ExtractedDocument(
             doc_id=pdf_path.stem,
